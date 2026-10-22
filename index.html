@@ -1,0 +1,1142 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1220">
+  <title>考試大鐘</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      background: #0b1220;
+      color: #f4f7fb;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(30, 58, 95, .36), transparent 58%),
+        #0b1220;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .page {
+      width: min(1200px, 100%);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: clamp(18px, 4vw, 48px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: clamp(24px, 4vh, 44px);
+    }
+
+    .clock-panel {
+      text-align: center;
+    }
+
+    .date {
+      margin: 0 0 8px;
+      color: #a9b7cc;
+      font-size: clamp(1.05rem, 2.5vw, 1.55rem);
+      letter-spacing: .08em;
+    }
+
+    .clock {
+      margin: 0;
+      color: #fff;
+      font-family: ui-monospace, "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: clamp(5rem, 19vw, 13rem);
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      letter-spacing: .015em;
+      line-height: 1;
+      text-shadow: 0 0 48px rgba(92, 163, 255, .17);
+    }
+
+    .countdown {
+      min-height: 1.7em;
+      margin: 18px 0 0;
+      color: #8dd9b5;
+      font-size: clamp(1.4rem, 4vw, 2.5rem);
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+
+    .countdown.warning {
+      color: #ff565f;
+      text-shadow: 0 0 24px rgba(255, 65, 75, .25);
+    }
+
+    .exam-info {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .info-card {
+      min-height: 112px;
+      padding: 18px 20px;
+      border: 1px solid #29374c;
+      border-radius: 14px;
+      background: rgba(19, 30, 48, .82);
+      text-align: center;
+    }
+
+    .info-label {
+      display: block;
+      margin-bottom: 8px;
+      color: #92a3bb;
+      font-size: .95rem;
+      letter-spacing: .08em;
+    }
+
+    .info-value {
+      display: block;
+      overflow-wrap: anywhere;
+      color: #f4f7fb;
+      font-size: clamp(1.2rem, 3vw, 1.8rem);
+      font-weight: 650;
+    }
+
+    .details {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .detail-card {
+      padding: 14px 18px;
+      border: 1px solid #29374c;
+      border-radius: 12px;
+      background: rgba(19, 30, 48, .72);
+      color: #c6d2e2;
+      text-align: center;
+      font-size: clamp(1rem, 2.3vw, 1.35rem);
+    }
+
+    .detail-card strong {
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .controls {
+      padding: 22px;
+      border: 1px solid #29374c;
+      border-radius: 16px;
+      background: rgba(15, 25, 41, .92);
+    }
+
+    .controls-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .controls h2 {
+      margin: 0;
+      font-size: 1.15rem;
+    }
+
+    .fullscreen-button {
+      padding: 10px 16px;
+      border: 0;
+      border-radius: 9px;
+      background: #2563eb;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .fullscreen-button:hover {
+      background: #3978fa;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .field label {
+      color: #bdc9d9;
+      font-size: .92rem;
+    }
+
+    .field input {
+      width: 100%;
+      min-height: 44px;
+      padding: 9px 11px;
+      border: 1px solid #3b4b62;
+      border-radius: 8px;
+      outline: none;
+      background: #0b1423;
+      color: #fff;
+    }
+
+    .field input:focus {
+      border-color: #70a5ff;
+      box-shadow: 0 0 0 3px rgba(74, 132, 239, .2);
+    }
+
+    .field input[type="number"] {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .form-note {
+      min-height: 1.3em;
+      margin: 14px 0 0;
+      color: #92a3bb;
+      font-size: .88rem;
+    }
+
+    .form-note.error {
+      color: #ff9298;
+    }
+
+    :fullscreen {
+      background: #0b1220;
+    }
+
+    .page.presentation {
+      width: 100%;
+      max-width: none;
+      padding: clamp(20px, 5vw, 72px);
+    }
+
+    .page.presentation .controls {
+      display: none;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid #29374c;
+      border-radius: 14px;
+      background: rgba(15, 25, 41, .92);
+    }
+
+    .tab-button {
+      flex: 1;
+      min-height: 48px;
+      padding: 10px 14px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: #a9b7cc;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tab-button[aria-selected="true"] {
+      background: #2563eb;
+      color: #fff;
+    }
+
+    .tab-panel {
+      flex-direction: column;
+      gap: clamp(24px, 4vh, 44px);
+    }
+
+    .tab-panel:not(.active) {
+      display: none;
+    }
+
+    .panel-heading {
+      margin: 0;
+      text-align: center;
+      font-size: clamp(1.4rem, 3vw, 2rem);
+    }
+
+    .bell-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .bell-button {
+      min-height: 190px;
+      border: 1px solid #426086;
+      border-radius: 18px;
+      background: linear-gradient(145deg, #1a3151, #122138);
+      color: #fff;
+      font-size: clamp(2rem, 6vw, 4rem);
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+
+    .bell-button:hover {
+      transform: translateY(-2px);
+      border-color: #79aaff;
+      background: linear-gradient(145deg, #24436c, #192d49);
+    }
+
+    .schedule-card,
+    .tomato-card {
+      padding: clamp(18px, 3vw, 28px);
+      border: 1px solid #29374c;
+      border-radius: 16px;
+      background: rgba(15, 25, 41, .92);
+    }
+
+    .schedule-card h2,
+    .tomato-card h2 {
+      margin: 0 0 18px;
+      font-size: 1.2rem;
+    }
+
+    .schedule-form {
+      display: grid;
+      grid-template-columns: minmax(90px, .7fr) 1fr 1fr auto;
+      align-items: end;
+      gap: 12px;
+    }
+
+    .schedule-form .field input {
+      min-height: 46px;
+    }
+
+    .primary-button,
+    .secondary-button,
+    .delete-button {
+      min-height: 44px;
+      padding: 10px 16px;
+      border: 0;
+      border-radius: 9px;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .primary-button {
+      background: #2563eb;
+    }
+
+    .primary-button:hover {
+      background: #3978fa;
+    }
+
+    .secondary-button {
+      border: 1px solid #40516a;
+      background: #1a2940;
+    }
+
+    .secondary-button:hover {
+      background: #263952;
+    }
+
+    .delete-button {
+      min-height: 36px;
+      padding: 7px 12px;
+      background: #7f2934;
+    }
+
+    .delete-button:hover {
+      background: #a73542;
+    }
+
+    .schedule-list {
+      display: grid;
+      gap: 8px;
+      margin: 18px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .schedule-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #111e31;
+      color: #dce6f3;
+    }
+
+    .schedule-empty,
+    .hint {
+      margin: 14px 0 0;
+      color: #92a3bb;
+      line-height: 1.6;
+    }
+
+    .auto-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #dce6f3;
+      font-weight: 650;
+    }
+
+    .auto-toggle input {
+      width: 20px;
+      height: 20px;
+      accent-color: #3b82f6;
+    }
+
+    .tomato-settings {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .tomato-settings .field {
+      width: min(190px, 45%);
+    }
+
+    .tomato-settings input {
+      text-align: center;
+    }
+
+    .tomato-display {
+      padding: clamp(24px, 6vw, 56px) 12px;
+      text-align: center;
+    }
+
+    .tomato-phase {
+      margin: 0 0 10px;
+      color: #9db2cc;
+      font-size: clamp(1.1rem, 3vw, 1.6rem);
+      letter-spacing: .08em;
+    }
+
+    .tomato-time {
+      margin: 0;
+      color: #fff;
+      font-family: ui-monospace, "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: clamp(5rem, 20vw, 12rem);
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+      line-height: 1;
+      text-shadow: 0 0 48px rgba(92, 163, 255, .17);
+    }
+
+    .tomato-round {
+      margin: 16px 0 0;
+      color: #bdc9d9;
+      font-size: clamp(1.1rem, 3vw, 1.6rem);
+    }
+
+    .tomato-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .tomato-actions button {
+      min-width: 112px;
+      min-height: 48px;
+    }
+
+    .presentation .tabs {
+      display: none;
+    }
+
+    .presentation .tab-panel:not(#panel-clock) {
+      display: none !important;
+    }
+
+    @media (max-width: 760px) {
+      .form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .exam-info {
+        grid-template-columns: 1fr;
+      }
+
+      .info-card {
+        min-height: 0;
+        padding: 14px;
+      }
+
+      .schedule-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .schedule-form .primary-button {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 440px) {
+      .details {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        padding: 16px;
+      }
+
+      .tabs {
+        gap: 2px;
+        padding: 5px;
+      }
+
+      .tab-button {
+        padding: 9px 5px;
+        font-size: .85rem;
+      }
+
+      .bell-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .bell-button {
+        min-height: 130px;
+      }
+
+      .schedule-form {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .schedule-form .field:first-child,
+      .schedule-form .primary-button {
+        grid-column: 1 / -1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page" id="page">
+    <nav class="tabs" role="tablist" aria-label="功能分頁">
+      <button class="tab-button" id="tab-clock" type="button" role="tab" aria-selected="true" aria-controls="panel-clock">考試大鐘</button>
+      <button class="tab-button" id="tab-bell" type="button" role="tab" aria-selected="false" aria-controls="panel-bell" tabindex="-1">上下課鐘</button>
+      <button class="tab-button" id="tab-tomato" type="button" role="tab" aria-selected="false" aria-controls="panel-tomato" tabindex="-1">讀書番茄鐘</button>
+    </nav>
+
+    <div class="tab-panel active" id="panel-clock" role="tabpanel" aria-labelledby="tab-clock">
+    <section class="clock-panel" aria-label="現在時間">
+      <p class="date" id="date">載入日期中</p>
+      <h1 class="clock" id="clock" aria-live="off">--:--:--</h1>
+      <p class="countdown" id="countdown" aria-live="polite">請設定考試結束時間</p>
+    </section>
+
+    <section class="exam-info" aria-label="考試資訊">
+      <div class="info-card">
+        <span class="info-label">考試科目</span>
+        <strong class="info-value" id="display-subject">尚未設定</strong>
+      </div>
+      <div class="info-card">
+        <span class="info-label">考試時間</span>
+        <strong class="info-value" id="display-time">--:-- ～ --:--</strong>
+      </div>
+      <div class="info-card">
+        <span class="info-label">監考老師</span>
+        <strong class="info-value" id="display-teacher">尚未設定</strong>
+      </div>
+    </section>
+
+    <section class="details" aria-label="考試人數">
+      <div class="detail-card">應到 <strong id="display-expected">0</strong> 人</div>
+      <div class="detail-card">實到 <strong id="display-attended">0</strong> 人　·　缺考 <strong id="display-absent">0</strong> 人</div>
+    </section>
+
+    <section class="controls" aria-label="考試設定">
+      <div class="controls-heading">
+        <h2>考試設定</h2>
+        <button class="fullscreen-button" id="fullscreen-button" type="button">全螢幕</button>
+      </div>
+      <form id="exam-form">
+        <div class="form-grid">
+          <div class="field">
+            <label for="subject">考試科目</label>
+            <input id="subject" name="subject" type="text" placeholder="例如：數學">
+          </div>
+          <div class="field">
+            <label for="start-time">開始時間</label>
+            <input id="start-time" name="startTime" type="time" step="60">
+          </div>
+          <div class="field">
+            <label for="end-time">結束時間</label>
+            <input id="end-time" name="endTime" type="time" step="60">
+          </div>
+          <div class="field">
+            <label for="teacher">監考老師</label>
+            <input id="teacher" name="teacher" type="text" placeholder="例如：王老師">
+          </div>
+          <div class="field">
+            <label for="expected">應到人數</label>
+            <input id="expected" name="expected" type="number" min="0" step="1" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label for="attended">實到人數</label>
+            <input id="attended" name="attended" type="number" min="0" step="1" inputmode="numeric">
+          </div>
+        </div>
+        <p class="form-note" id="form-note" role="status">設定會自動儲存在此裝置的瀏覽器中。</p>
+      </form>
+    </section>
+    </div>
+
+    <section class="tab-panel" id="panel-bell" role="tabpanel" aria-labelledby="tab-bell" aria-hidden="true">
+      <h1 class="panel-heading">上下課鐘</h1>
+      <div class="bell-actions">
+        <button class="bell-button" id="class-start-bell" type="button">上課鈴</button>
+        <button class="bell-button" id="class-end-bell" type="button">下課鈴</button>
+      </div>
+
+      <section class="schedule-card" aria-label="課表設定">
+        <h2>課表</h2>
+        <form class="schedule-form" id="schedule-form">
+          <div class="field">
+            <label for="period-name">節次</label>
+            <input id="period-name" type="text" placeholder="例如：第 1 節" maxlength="20">
+          </div>
+          <div class="field">
+            <label for="period-start">上課時間</label>
+            <input id="period-start" type="time" required>
+          </div>
+          <div class="field">
+            <label for="period-end">下課時間</label>
+            <input id="period-end" type="time" required>
+          </div>
+          <button class="primary-button" type="submit">新增課表</button>
+        </form>
+        <ul class="schedule-list" id="schedule-list" aria-live="polite"></ul>
+        <p class="schedule-empty" id="schedule-empty">尚未新增課表。</p>
+        <label class="auto-toggle">
+          <input id="auto-bell" type="checkbox">
+          啟用自動打鐘
+        </label>
+        <p class="hint">課表每天依設定時間響鈴；自動打鐘需保持此頁面開啟，且瀏覽器分頁不可被系統暫停。</p>
+        <p class="form-note" id="bell-note" role="status">按下任一鈴聲按鈕可預聽鈴聲。</p>
+      </section>
+    </section>
+
+    <section class="tab-panel" id="panel-tomato" role="tabpanel" aria-labelledby="tab-tomato" aria-hidden="true">
+      <h1 class="panel-heading">讀書番茄鐘</h1>
+      <section class="tomato-card" aria-label="番茄鐘計時器">
+        <div class="tomato-settings">
+          <div class="field">
+            <label for="focus-minutes">專注時間（分鐘）</label>
+            <input id="focus-minutes" type="number" min="1" max="180" step="1" value="25">
+          </div>
+          <div class="field">
+            <label for="break-minutes">休息時間（分鐘）</label>
+            <input id="break-minutes" type="number" min="1" max="60" step="1" value="5">
+          </div>
+        </div>
+        <div class="tomato-display">
+          <p class="tomato-phase" id="tomato-phase">專注時間</p>
+          <p class="tomato-time" id="tomato-time" role="timer" aria-live="off">25:00</p>
+          <p class="tomato-round" id="tomato-round">第 1 輪</p>
+        </div>
+        <div class="tomato-actions">
+          <button class="primary-button" id="tomato-start" type="button">開始</button>
+          <button class="secondary-button" id="tomato-pause" type="button">暫停</button>
+          <button class="secondary-button" id="tomato-reset" type="button">重設</button>
+          <button class="secondary-button" id="tomato-skip" type="button">跳過</button>
+        </div>
+        <p class="hint" id="tomato-note" role="status">專注與休息階段結束時會播放提示音並自動切換。</p>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const storageKey = "exam-clock-settings-v1";
+      const page = document.getElementById("page");
+      const form = document.getElementById("exam-form");
+      const note = document.getElementById("form-note");
+      const fields = {
+        subject: document.getElementById("subject"),
+        startTime: document.getElementById("start-time"),
+        endTime: document.getElementById("end-time"),
+        teacher: document.getElementById("teacher"),
+        expected: document.getElementById("expected"),
+        attended: document.getElementById("attended")
+      };
+
+      function showNote(message, isError = false) {
+        note.textContent = message;
+        note.classList.toggle("error", isError);
+      }
+
+      function readSettings() {
+        try {
+          const saved = localStorage.getItem(storageKey);
+          if (!saved) return;
+
+          const settings = JSON.parse(saved);
+          for (const [key, input] of Object.entries(fields)) {
+            if (typeof settings[key] === "string" || typeof settings[key] === "number") {
+              input.value = String(settings[key]);
+            }
+          }
+        } catch (error) {
+          console.error("無法讀取已儲存的考試設定。", error);
+          showNote("無法讀取已儲存的設定；請檢查瀏覽器儲存空間。", true);
+        }
+      }
+
+      function getSettings() {
+        return {
+          subject: fields.subject.value.trim(),
+          startTime: fields.startTime.value,
+          endTime: fields.endTime.value,
+          teacher: fields.teacher.value.trim(),
+          expected: fields.expected.value,
+          attended: fields.attended.value
+        };
+      }
+
+      function updateDisplay() {
+        const settings = getSettings();
+        const expected = Math.max(0, Number.parseInt(settings.expected, 10) || 0);
+        const attended = Math.max(0, Number.parseInt(settings.attended, 10) || 0);
+
+        document.getElementById("display-subject").textContent = settings.subject || "尚未設定";
+        document.getElementById("display-time").textContent =
+          settings.startTime && settings.endTime
+            ? `${settings.startTime} ～ ${settings.endTime}`
+            : "尚未設定";
+        document.getElementById("display-teacher").textContent = settings.teacher || "尚未設定";
+        document.getElementById("display-expected").textContent = String(expected);
+        document.getElementById("display-attended").textContent = String(attended);
+        document.getElementById("display-absent").textContent = String(Math.max(0, expected - attended));
+      }
+
+      function saveSettings() {
+        updateDisplay();
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(getSettings()));
+          showNote("設定已儲存在此裝置的瀏覽器中。");
+        } catch (error) {
+          console.error("無法儲存考試設定。", error);
+          showNote("無法儲存設定；請檢查瀏覽器儲存空間或隱私設定。", true);
+        }
+      }
+
+      function getEndDateTime(now, endTime, startTime) {
+        if (!endTime) return null;
+        const [hours, minutes] = endTime.split(":").map(Number);
+        const end = new Date(now);
+        end.setHours(hours, minutes, 0, 0);
+
+        if (startTime) {
+          const [startHours, startMinutes] = startTime.split(":").map(Number);
+          const start = new Date(now);
+          start.setHours(startHours, startMinutes, 0, 0);
+          if (end <= start) end.setDate(end.getDate() + 1);
+        }
+
+        return end;
+      }
+
+      function updateClock() {
+        const now = new Date();
+        document.getElementById("date").textContent = new Intl.DateTimeFormat("zh-TW", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          weekday: "long"
+        }).format(now);
+        document.getElementById("clock").textContent = new Intl.DateTimeFormat("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hourCycle: "h23"
+        }).format(now);
+
+        const countdown = document.getElementById("countdown");
+        const settings = getSettings();
+        const end = getEndDateTime(now, settings.endTime, settings.startTime);
+        countdown.classList.remove("warning");
+
+        if (!end) {
+          countdown.textContent = "請設定考試結束時間";
+          return;
+        }
+
+        const remainingMs = end.getTime() - now.getTime();
+        const remainingMinutes = Math.max(0, Math.ceil(remainingMs / 60000));
+        if (remainingMs <= 0) {
+          countdown.textContent = "考試時間已結束";
+          countdown.classList.add("warning");
+        } else {
+          countdown.textContent = `距離考試結束還有 ${remainingMinutes} 分鐘`;
+          if (remainingMs <= 10 * 60 * 1000) countdown.classList.add("warning");
+        }
+      }
+
+      function syncFullscreenState() {
+        page.classList.toggle("presentation", document.fullscreenElement === page);
+      }
+
+      const bellStorageKey = "school-bell-settings-v1";
+      const tomatoStorageKey = "study-tomato-settings-v1";
+      const bellNote = document.getElementById("bell-note");
+      const scheduleList = document.getElementById("schedule-list");
+      const scheduleEmpty = document.getElementById("schedule-empty");
+      let schedule = [];
+      let autoBellEnabled = false;
+      let audioContext = null;
+      let lastAutoRings = new Set();
+      let focusMinutes = 25;
+      let breakMinutes = 5;
+      let tomatoPhase = "focus";
+      let tomatoRound = 1;
+      let tomatoRemaining = focusMinutes * 60000;
+      let tomatoEndAt = null;
+
+      function setBellNote(message, isError = false) {
+        bellNote.textContent = message;
+        bellNote.classList.toggle("error", isError);
+      }
+
+      function loadFeatureSettings() {
+        try {
+          const savedBell = JSON.parse(localStorage.getItem(bellStorageKey) || "{}");
+          if (Array.isArray(savedBell.schedule)) {
+            schedule = savedBell.schedule.filter(item =>
+              item && typeof item.id === "string" &&
+              typeof item.name === "string" &&
+              /^\d{2}:\d{2}$/.test(item.start) &&
+              /^\d{2}:\d{2}$/.test(item.end)
+            );
+          }
+          autoBellEnabled = savedBell.enabled === true;
+
+          const savedTomato = JSON.parse(localStorage.getItem(tomatoStorageKey) || "{}");
+          if (Number.isInteger(savedTomato.focusMinutes) && savedTomato.focusMinutes >= 1 && savedTomato.focusMinutes <= 180) {
+            focusMinutes = savedTomato.focusMinutes;
+          }
+          if (Number.isInteger(savedTomato.breakMinutes) && savedTomato.breakMinutes >= 1 && savedTomato.breakMinutes <= 60) {
+            breakMinutes = savedTomato.breakMinutes;
+          }
+        } catch (error) {
+          console.error("無法讀取課表或番茄鐘設定。", error);
+          setBellNote("無法讀取已儲存的課表設定；請檢查瀏覽器儲存空間。", true);
+        }
+      }
+
+      function saveBellSettings() {
+        try {
+          localStorage.setItem(bellStorageKey, JSON.stringify({
+            schedule,
+            enabled: autoBellEnabled
+          }));
+        } catch (error) {
+          console.error("無法儲存課表設定。", error);
+          setBellNote("無法儲存課表；請檢查瀏覽器儲存空間。", true);
+        }
+      }
+
+      function renderSchedule() {
+        schedule.sort((a, b) => a.start.localeCompare(b.start) || a.end.localeCompare(b.end));
+        scheduleList.replaceChildren();
+        scheduleEmpty.hidden = schedule.length > 0;
+
+        for (const item of schedule) {
+          const row = document.createElement("li");
+          row.className = "schedule-row";
+          const description = document.createElement("span");
+          description.textContent = `${item.name}　${item.start} 上課　／　${item.end} 下課`;
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "delete-button";
+          remove.textContent = "刪除";
+          remove.setAttribute("aria-label", `刪除${item.name}課表`);
+          remove.addEventListener("click", () => {
+            schedule = schedule.filter(entry => entry.id !== item.id);
+            renderSchedule();
+            saveBellSettings();
+          });
+          row.append(description, remove);
+          scheduleList.append(row);
+        }
+      }
+
+      function getAudioContext() {
+        if (!audioContext) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) throw new Error("此瀏覽器不支援 Web Audio API。");
+          audioContext = new AudioContextClass();
+        }
+        return audioContext;
+      }
+
+      function playBell(type) {
+        try {
+          const context = getAudioContext();
+          const startAt = context.currentTime + 0.03;
+          const notes = type === "start"
+            ? [880, 659, 880, 659, 880]
+            : [659, 880, 659, 880, 659, 880];
+          const spacing = type === "start" ? 0.38 : 0.3;
+
+          if (context.state === "suspended") context.resume().catch(error => {
+            console.error("無法啟用鈴聲音訊。", error);
+            setBellNote("瀏覽器未允許播放鈴聲，請重新按一下鈴聲按鈕。", true);
+          });
+
+          notes.forEach((frequency, index) => {
+            const noteStart = startAt + index * spacing;
+            for (const [partial, level] of [[1, 0.12], [2.4, 0.035]]) {
+              const oscillator = context.createOscillator();
+              const gain = context.createGain();
+              oscillator.type = "sine";
+              oscillator.frequency.setValueAtTime(frequency * partial, noteStart);
+              gain.gain.setValueAtTime(0.0001, noteStart);
+              gain.gain.exponentialRampToValueAtTime(level, noteStart + 0.015);
+              gain.gain.exponentialRampToValueAtTime(0.0001, noteStart + 0.27);
+              oscillator.connect(gain);
+              gain.connect(context.destination);
+              oscillator.start(noteStart);
+              oscillator.stop(noteStart + 0.29);
+            }
+          });
+          setBellNote(type === "start" ? "正在播放上課鈴。" : "正在播放下課鈴。");
+        } catch (error) {
+          console.error("無法播放鈴聲。", error);
+          setBellNote(error.message || "無法播放鈴聲，請使用支援 Web Audio API 的瀏覽器。", true);
+        }
+      }
+
+      function checkAutoBell() {
+        if (!autoBellEnabled || schedule.length === 0) return;
+        const now = new Date();
+        const hhmm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+        const dateKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+
+        for (const item of schedule) {
+          for (const [time, type] of [[item.start, "start"], [item.end, "end"]]) {
+            const ringKey = `${dateKey}-${item.id}-${type}`;
+            if (hhmm === time && !lastAutoRings.has(ringKey)) {
+              lastAutoRings.add(ringKey);
+              playBell(type);
+            }
+          }
+        }
+
+        if (lastAutoRings.size > 100) lastAutoRings.clear();
+      }
+
+      function getTomatoDuration() {
+        return (tomatoPhase === "focus" ? focusMinutes : breakMinutes) * 60000;
+      }
+
+      function renderTomato() {
+        const remaining = Math.max(0, tomatoRemaining);
+        const totalSeconds = Math.ceil(remaining / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        document.getElementById("tomato-time").textContent =
+          `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        document.getElementById("tomato-phase").textContent =
+          tomatoPhase === "focus" ? "專注時間" : "休息時間";
+        document.getElementById("tomato-round").textContent = `第 ${tomatoRound} 輪`;
+        document.getElementById("tomato-start").disabled = tomatoEndAt !== null;
+        document.getElementById("tomato-pause").disabled = tomatoEndAt === null;
+      }
+
+      function completeTomatoPhase() {
+        playBell("end");
+        if (tomatoPhase === "focus") {
+          tomatoPhase = "break";
+        } else {
+          tomatoPhase = "focus";
+          tomatoRound += 1;
+        }
+        tomatoRemaining = getTomatoDuration();
+        tomatoEndAt = Date.now() + tomatoRemaining;
+        document.getElementById("tomato-note").textContent =
+          tomatoPhase === "break" ? "專注結束，開始休息。" : "休息結束，開始下一輪專注。";
+        renderTomato();
+      }
+
+      function tickTomato() {
+        if (tomatoEndAt !== null) {
+          tomatoRemaining = tomatoEndAt - Date.now();
+          if (tomatoRemaining <= 0) completeTomatoPhase();
+        }
+        renderTomato();
+      }
+
+      function resetTomato() {
+        tomatoEndAt = null;
+        tomatoRemaining = getTomatoDuration();
+        renderTomato();
+      }
+
+      function saveTomatoDurations() {
+        try {
+          localStorage.setItem(tomatoStorageKey, JSON.stringify({ focusMinutes, breakMinutes }));
+          document.getElementById("tomato-note").textContent = "專注與休息時間已儲存。";
+        } catch (error) {
+          console.error("無法儲存番茄鐘設定。", error);
+          document.getElementById("tomato-note").textContent = "無法儲存番茄鐘設定；請檢查瀏覽器儲存空間。";
+        }
+      }
+
+      function selectTab(tab) {
+        const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+        for (const item of tabs) {
+          const selected = item === tab;
+          item.setAttribute("aria-selected", String(selected));
+          item.tabIndex = selected ? 0 : -1;
+          const panel = document.getElementById(item.getAttribute("aria-controls"));
+          panel.classList.toggle("active", selected);
+          panel.setAttribute("aria-hidden", String(!selected));
+        }
+      }
+
+      document.querySelectorAll('[role="tab"]').forEach(tab => {
+        tab.addEventListener("click", () => selectTab(tab));
+        tab.addEventListener("keydown", event => {
+          const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+          const currentIndex = tabs.indexOf(tab);
+          let nextIndex = currentIndex;
+          if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % tabs.length;
+          else if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+          else if (event.key === "Home") nextIndex = 0;
+          else if (event.key === "End") nextIndex = tabs.length - 1;
+          else return;
+          event.preventDefault();
+          tabs[nextIndex].focus();
+          selectTab(tabs[nextIndex]);
+        });
+      });
+
+      document.getElementById("class-start-bell").addEventListener("click", () => playBell("start"));
+      document.getElementById("class-end-bell").addEventListener("click", () => playBell("end"));
+      document.getElementById("schedule-form").addEventListener("submit", event => {
+        event.preventDefault();
+        const nameInput = document.getElementById("period-name");
+        const start = document.getElementById("period-start").value;
+        const end = document.getElementById("period-end").value;
+        if (!start || !end) return;
+        const name = nameInput.value.trim() || `第 ${schedule.length + 1} 節`;
+        schedule.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, name, start, end });
+        renderSchedule();
+        saveBellSettings();
+        event.currentTarget.reset();
+        setBellNote("課表已新增並儲存。");
+      });
+      document.getElementById("auto-bell").addEventListener("change", event => {
+        autoBellEnabled = event.currentTarget.checked;
+        saveBellSettings();
+        setBellNote(autoBellEnabled ? "自動打鐘已啟用。" : "自動打鐘已停用。");
+        if (autoBellEnabled) {
+          try {
+            const context = getAudioContext();
+            if (context.state === "suspended") context.resume().catch(error => {
+              console.error("無法啟用自動打鐘音訊。", error);
+              setBellNote("瀏覽器未允許播放音訊；請點擊上課鈴或下課鈴後再試。", true);
+            });
+          } catch (error) {
+            console.error("無法啟用自動打鐘。", error);
+            setBellNote(error.message || "此瀏覽器不支援自動播放鈴聲。", true);
+          }
+        }
+      });
+
+      document.getElementById("tomato-start").addEventListener("click", () => {
+        if (tomatoEndAt === null) tomatoEndAt = Date.now() + tomatoRemaining;
+        renderTomato();
+      });
+      document.getElementById("tomato-pause").addEventListener("click", () => {
+        if (tomatoEndAt !== null) {
+          tomatoRemaining = Math.max(0, tomatoEndAt - Date.now());
+          tomatoEndAt = null;
+          renderTomato();
+        }
+      });
+      document.getElementById("tomato-reset").addEventListener("click", resetTomato);
+      document.getElementById("tomato-skip").addEventListener("click", () => {
+        if (tomatoPhase === "focus") {
+          tomatoPhase = "break";
+        } else {
+          tomatoPhase = "focus";
+          tomatoRound += 1;
+        }
+        tomatoRemaining = getTomatoDuration();
+        tomatoEndAt = null;
+        document.getElementById("tomato-note").textContent = "已跳過目前階段。";
+        renderTomato();
+      });
+      document.getElementById("focus-minutes").addEventListener("change", event => {
+        const value = Number(event.currentTarget.value);
+        if (!Number.isInteger(value) || value < 1 || value > 180) {
+          event.currentTarget.value = String(focusMinutes);
+          return;
+        }
+        focusMinutes = value;
+        if (tomatoPhase === "focus" && tomatoEndAt === null) tomatoRemaining = getTomatoDuration();
+        saveTomatoDurations();
+        renderTomato();
+      });
+      document.getElementById("break-minutes").addEventListener("change", event => {
+        const value = Number(event.currentTarget.value);
+        if (!Number.isInteger(value) || value < 1 || value > 60) {
+          event.currentTarget.value = String(breakMinutes);
+          return;
+        }
+        breakMinutes = value;
+        if (tomatoPhase === "break" && tomatoEndAt === null) tomatoRemaining = getTomatoDuration();
+        saveTomatoDurations();
+        renderTomato();
+      });
+
+      form.addEventListener("input", saveSettings);
+      document.getElementById("fullscreen-button").addEventListener("click", async () => {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+          return;
+        }
+
+        try {
+          await page.requestFullscreen();
+        } catch (error) {
+          console.error("無法進入全螢幕模式。", error);
+          showNote("無法進入全螢幕；請確認瀏覽器允許此頁面使用全螢幕。", true);
+        }
+      });
+      document.addEventListener("fullscreenchange", syncFullscreenState);
+
+      readSettings();
+      loadFeatureSettings();
+      document.getElementById("auto-bell").checked = autoBellEnabled;
+      document.getElementById("focus-minutes").value = String(focusMinutes);
+      document.getElementById("break-minutes").value = String(breakMinutes);
+      tomatoRemaining = getTomatoDuration();
+      renderSchedule();
+      renderTomato();
+      updateDisplay();
+      updateClock();
+      window.setInterval(updateClock, 1000);
+      window.setInterval(checkAutoBell, 1000);
+      window.setInterval(tickTomato, 250);
+    })();
+  </script>
+</body>
+</html>
